@@ -22,7 +22,7 @@ The samplesheet must be an **.xlsx** file and should look something like the fol
 | MIN-2019-000026 | 1185-Spri    | barcode12 | 20191118_2053_1D | Rapid Barcoding Sequencing | MN26570       | SQL-RBK004     | FLO-MIN106    | Chicken_Nugget_Project  | 1D        | Dussault, F. |
 
 ##### Important notes on SampleSheet:
-- All columns are required, must be populated, and must be named as shown.
+- All columns are required, must be populated, and must be named as displayed above.
 
 - Entries in the Sample_ID column must follow the `MIN-YYYY-XXXXXX` nomenclature.
 
@@ -34,8 +34,8 @@ This is required for upload to the portal.
 ### Installation instructions
 
 ```
-git clone {todo}
-cd {todo}
+git clone https://github.com/bfssi-forest-dussault/BMH_MinION_Basecaller.git
+cd BMH_MinION_Basecaller
 conda create -f environment.yml
-conda activate envname
+conda activate BMH_MinION_Basecaller
 ```
