@@ -1,15 +1,11 @@
+#!/usr/bin/env python
+
 import click
 import shutil
 from pathlib import Path
 from subprocess import Popen, PIPE
 import pandas as pd
 import re
-
-"""
-TODO:
-Automatically parse out the flowcell and kit. Kit will be in the samplesheet and
-flowcell is in final_summary.txt
-"""
 
 
 def validate_minion_project_id(value: str):
@@ -79,7 +75,6 @@ def validate_samplesheet(samplesheet: Path):
         for key, val in df.iterrows():
             samplesheet_valid = validate_minion_sample_id(val['Sample_ID'])
             samplesheet_valid = validate_minion_project_id(val['Project_ID'])
-
         break
 
     if not samplesheet_valid:
@@ -125,15 +120,16 @@ def call_qcat(fastq, output_dir):
     return output_dir
 
 
-def call_pigz(fastq_dir):
+def call_7zip(ouput_dir: Path):
     """
-    Gzips all fastq files in a given directory. Used to gzip the contents of the qcat demultiplexed output folder.
+    Runs 7zip on the output directory
     """
     print(f"Compressing all FASTQ files in {fastq_dir}")
-    cmd = f"gzip {fastq_dir}/*.fastq"
+    outfile = output_dir.parent / output_dir.name
+    cmd = f"7z a {outfile} {output_dir}/*"
     print(cmd)
     run_subprocess(cmd)
-    return fastq_dir
+    return outfile
 
 
 def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str, kit: str):
@@ -142,16 +138,16 @@ def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str
     fastq_dir = call_guppy(input_dir, output_dir, flowcell, kit)
     combined_fastq = call_cat(fastq_dir, output_dir)
     demultiplex_dir = call_qcat(combined_fastq, output_dir)
-    call_pigz(demultiplex_dir)
+    call_7zip(output_dir)
 
 
 @click.command(
     help="Wrapper script to conduct basecalling and demultiplexing on a MinION run.\nForest Dussault (forest.dussault@canada.ca). 2020/03/04.")
-@click.option('-i', '--input-dir', type=click.STRING,
+@click.option('-i', '--input-dir', type=click.STRING, required=True,
               help="Path to the MinION output folder containing FAST5 files (e.g. /var/lib/MinKNOW/data/20191118/MN26570/20191118_2053_1D/fast5).")
-@click.option('-o', '--output-dir', type=click.STRING,
+@click.option('-o', '--output-dir', type=click.STRING, required=True,
               help="Path to desired output directory for basecalled and demultiplexed files")
-@click.option('-s', '--samplesheet', type=click.STRING,
+@click.option('-s', '--samplesheet', type=click.STRING, required=True,
               help="Path to samplesheet (.xlsx). Will automatically be copied to the output directory. Please refer to README.md for instructions on populating this file.")
 @click.option('-f', '--flowcell', type=click.STRING,
               help="Flowcell type used for the MinION run. Defaults to FLO-MIN106.", default="FLO-MIN106")
@@ -168,5 +164,4 @@ def cli(input_dir, output_dir, samplesheet, flowcell, kit):
 
 
 if __name__ == "__main__":
-    validate_samplesheet(Path('/home/forest/PycharmProjects/BMH_MinION_Basecaller/SampleSheet_example.xlsx'))
-    # cli()
+    cli()
