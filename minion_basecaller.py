@@ -3,9 +3,8 @@
 import click
 import shutil
 from pathlib import Path
-from subprocess import Popen, PIPE
+from subprocess import Popen
 import pandas as pd
-import re
 
 
 def validate_minion_project_id(value: str):
@@ -120,16 +119,27 @@ def call_qcat(fastq, output_dir):
     return output_dir
 
 
-def call_7zip(ouput_dir: Path):
+def call_7zip(output_dir: Path):
     """
     Runs 7zip on the output directory
     """
-    print(f"Compressing all FASTQ files in {fastq_dir}")
+    print(f"Compressing all files in {output_dir}")
     outfile = output_dir.parent / output_dir.name
     cmd = f"7z a {outfile} {output_dir}/*"
     print(cmd)
     run_subprocess(cmd)
     return outfile
+
+
+def call_pigz(fastq_dir):
+    """
+    Gzips all fastq files in a given directory. Used to gzip the contents of the qcat demultiplexed output folder.
+    """
+    print(f"Compressing all FASTQ files in {fastq_dir}")
+    cmd = f"gzip {fastq_dir}/*.fastq"
+    print(cmd)
+    run_subprocess(cmd)
+    return fastq_dir
 
 
 def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str, kit: str):
@@ -138,6 +148,7 @@ def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str
     fastq_dir = call_guppy(input_dir, output_dir, flowcell, kit)
     combined_fastq = call_cat(fastq_dir, output_dir)
     demultiplex_dir = call_qcat(combined_fastq, output_dir)
+    call_pigz(demultiplex_dir)
     call_7zip(output_dir)
 
 
