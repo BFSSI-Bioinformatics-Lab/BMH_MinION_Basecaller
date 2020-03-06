@@ -142,13 +142,19 @@ def call_pigz(fastq_dir):
     return fastq_dir
 
 
-def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str, kit: str):
+def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str, kit: str,
+             keep_intermediary_files: bool):
     validate_samplesheet(samplesheet=samplesheet)
     shutil.copy(str(samplesheet), str(output_dir / 'SampleSheet.xlsx'))
     fastq_dir = call_guppy(input_dir, output_dir, flowcell, kit)
     combined_fastq = call_cat(fastq_dir, output_dir)
     demultiplex_dir = call_qcat(combined_fastq, output_dir)
     call_pigz(demultiplex_dir)
+
+    if not keep_intermediary_files:
+        shutil.rmtree(fastq_dir)
+        combined_fastq.unlink()
+
     call_7zip(output_dir)
 
 
@@ -164,13 +170,18 @@ def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str
               help="Flowcell type used for the MinION run. Defaults to FLO-MIN106.", default="FLO-MIN106")
 @click.option('-k', '--kit', type=click.STRING, help="Kit used for the MinION run. Defaults to SQK-RBK004.",
               default="SQK-RBK004")
-def cli(input_dir, output_dir, samplesheet, flowcell, kit):
+@click.option('--keep_intermediary_files', type=click.BOOL,
+              help="Activate this flag to keep the Guppy basecalling output as well as the combined .fastq file. "
+                   "Otherwise, only the qcat output will be maintained.",
+              is_flag=True,
+              default=False)
+def cli(input_dir, output_dir, samplesheet, flowcell, kit, keep_intermediary_files):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
     samplesheet = Path(samplesheet)
     print(f"Started Basecalling workflow")
-    pipeline(input_dir, output_dir, samplesheet, flowcell, kit)
+    pipeline(input_dir, output_dir, samplesheet, flowcell, kit, keep_intermediary_files)
     print(f"Done! Output available in {output_dir}")
 
 
