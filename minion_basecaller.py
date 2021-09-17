@@ -63,7 +63,7 @@ def validate_samplesheet(samplesheet: Path):
     ]
 
     samplesheet_valid = True
-    df = pd.read_excel(samplesheet, index=None)
+    df = pd.read_excel(samplesheet, index_col=None)
 
     while samplesheet_valid:
         for col in expected_columns:
