@@ -87,10 +87,10 @@ def call_guppy(fast5_dir, output_dir, flowcell, kit):
     print(f"Running guppy on {fast5_dir} and storing output in {output_dir}")
     print(f"Flowcell: {flowcell}")
     print(f"Kit: {kit}")
-    cmd = f"guppy_basecaller -i {fast5_dir} -s {output_dir} --device cuda:0 --flowcell {flowcell} --kit {kit} --trim_barcodes --recursive --chunk_size 1700 --gpu_runners_per_device 4"
+    cmd = f"guppy_basecaller --device cuda:all -i {fast5_dir} -s {output_dir} --flowcell {flowcell} --kit {kit} --trim_barcodes --recursive --chunk_size 1700 --gpu_runners_per_device 6 --num_callers 5"
     print(cmd)
     run_subprocess(cmd)
-    return output_dir
+    return output_dir / "pass"
 
 
 def call_cat(fastq_dir, output_dir):
