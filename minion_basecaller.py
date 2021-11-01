@@ -152,7 +152,7 @@ def pipeline(input_dir: Path, output_dir: Path, samplesheet: Path, flowcell: str
     call_pigz(demultiplex_dir)
 
     if not keep_intermediary_files:
-        shutil.rmtree(fastq_dir)
+        shutil.rmtree(output_dir / "guppy_basecalling")
         combined_fastq.unlink()
 
     call_7zip(output_dir)
